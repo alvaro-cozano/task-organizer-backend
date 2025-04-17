@@ -1,4 +1,4 @@
-package com.project.management.springboot.backend.project_management.entities;
+package com.project.management.springboot.backend.project_management.entities.connection;
 
 import java.util.Date;
 
@@ -14,14 +14,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="user_board")
-public class User_board {
+@Table(name = "user_card")
+public class User_card {
 
     @Id
     private Long user_id;
 
     @Id
-    private Long board_id; 
+    private Long card_id;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

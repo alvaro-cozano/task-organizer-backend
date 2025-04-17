@@ -1,4 +1,4 @@
-package com.project.management.springboot.backend.project_management.entities;
+package com.project.management.springboot.backend.project_management.entities.models;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-@Table(name="card")
+@Table(name = "card")
 public class Card {
 
     @Id
@@ -74,29 +74,24 @@ public class Card {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
-    @JsonIgnoreProperties({"cards", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "cards", "handler", "hibernateLazyInitializer" })
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id")
-    @JsonIgnoreProperties({"cards", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "cards", "handler", "hibernateLazyInitializer" })
     private Status status;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"card", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "card", "handler", "hibernateLazyInitializer" })
     private List<Checklist_item> checklist_items = new ArrayList<>();
 
-    @JsonIgnoreProperties({"users", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "users", "handler", "hibernateLazyInitializer" })
     @ManyToMany
-    @JoinTable(
-        name = "user_card",
-        joinColumns = @JoinColumn(name = "card_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id"),
-        uniqueConstraints = { @UniqueConstraint(columnNames = {"card_id", "user_id"}) }
-    )
+    @JoinTable(name = "user_card", joinColumns = @JoinColumn(name = "card_id"), inverseJoinColumns = @JoinColumn(name = "user_id"), uniqueConstraints = {
+            @UniqueConstraint(columnNames = { "card_id", "user_id" }) })
     private List<User> users = new ArrayList<>();
 
-    
     public Card() {
     }
 
@@ -179,5 +174,21 @@ public class Card {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Europe/Madrid"));
         return sdf.format(updatedAt);
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

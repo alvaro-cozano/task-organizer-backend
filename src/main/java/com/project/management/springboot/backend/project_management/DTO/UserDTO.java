@@ -1,5 +1,6 @@
 package com.project.management.springboot.backend.project_management.DTO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.management.springboot.backend.project_management.validation.ExistsByEmail;
 import com.project.management.springboot.backend.project_management.validation.ExistsByUsername;
 
@@ -24,9 +25,26 @@ public class UserDTO {
     private String username;
 
     @NotBlank
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     // Getters y Setters
+
+    public UserDTO() {
+    }
+
+    public UserDTO(
+            @NotBlank String first_name,
+            @NotBlank String last_name,
+            @NotBlank String email,
+            @NotBlank @Size(min = 4, max = 16, message = "debe tener entre 4 y 16 caracteres") String username,
+            String password) {
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+    }
 
     public String getFirst_name() {
         return first_name;

@@ -3,22 +3,22 @@ package com.project.management.springboot.backend.project_management.validation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.project.management.springboot.backend.project_management.services.user.UserService;
+import com.project.management.springboot.backend.project_management.services.board.BoardService;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 @Component
-public class ExistsByUsernameValidation implements ConstraintValidator<ExistsByUsername, String> {
+public class ExistsByBoardNameValidation implements ConstraintValidator<ExistsByBoardName, String> {
 
     @Autowired
-    private UserService service;
+    private BoardService service;
 
     @Override
-    public boolean isValid(String username, ConstraintValidatorContext context) {
+    public boolean isValid(String boardName, ConstraintValidatorContext context) {
         if (service == null) {
             return true;
         }
-        return !service.existsByUsername(username);
+        return !service.existsByBoardName(boardName);
     }
 }

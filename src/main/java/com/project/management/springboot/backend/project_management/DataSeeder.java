@@ -8,14 +8,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import com.project.management.springboot.backend.project_management.entities.Role;
-import com.project.management.springboot.backend.project_management.entities.Status;
-import com.project.management.springboot.backend.project_management.entities.User;
-import com.project.management.springboot.backend.project_management.entities.User_roles;
+import com.project.management.springboot.backend.project_management.entities.connection.User_roles;
+import com.project.management.springboot.backend.project_management.entities.models.Role;
+import com.project.management.springboot.backend.project_management.entities.models.Status;
+import com.project.management.springboot.backend.project_management.entities.models.User;
 import com.project.management.springboot.backend.project_management.repositories.RoleRepository;
 import com.project.management.springboot.backend.project_management.repositories.StatusRepository;
 import com.project.management.springboot.backend.project_management.repositories.UserRepository;
-import com.project.management.springboot.backend.project_management.repositories.User_rolesRepository;
+import com.project.management.springboot.backend.project_management.repositories.connection.User_rolesRepository;
 
 @Configuration
 public class DataSeeder {

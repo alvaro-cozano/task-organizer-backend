@@ -1,7 +1,7 @@
 package com.project.management.springboot.backend.project_management.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.management.springboot.backend.project_management.entities.User;
+import com.project.management.springboot.backend.project_management.entities.models.User;
 import com.project.management.springboot.backend.project_management.security.JwtService;
 
 import jakarta.servlet.FilterChain;

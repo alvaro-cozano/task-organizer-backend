@@ -1,4 +1,4 @@
-package com.project.management.springboot.backend.project_management.services;
+package com.project.management.springboot.backend.project_management.services.user;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,11 +13,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.project.management.springboot.backend.project_management.entities.User;
+import com.project.management.springboot.backend.project_management.entities.models.User;
 import com.project.management.springboot.backend.project_management.repositories.UserRepository;
 
 @Service
-public class JpaUserDetailsService implements UserDetailsService{
+public class JpaUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserRepository repository;
@@ -27,26 +27,25 @@ public class JpaUserDetailsService implements UserDetailsService{
     public UserDetails loadUserByUsername(String input) throws UsernameNotFoundException {
         Optional<User> userOptional = repository.findByUsernameOrEmail(input, input);
 
-        if(userOptional.isEmpty()){
-            throw new UsernameNotFoundException(String.format("No se encuentra ningún usuario con nombre o email: %s", input));
+        if (userOptional.isEmpty()) {
+            throw new UsernameNotFoundException(
+                    String.format("No se encuentra ningún usuario con nombre o email: %s", input));
         }
 
         User user = userOptional.get();
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
-        .map(role -> new SimpleGrantedAuthority(role.getName()))
-        .collect(Collectors.toList());
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toList());
 
         return new org.springframework.security.core.userdetails.User(
-            user.getUsername(), 
-            user.getPassword(),
-            true,
-            true,
-            true,
-            true,
-            authorities
-        );
+                user.getUsername(),
+                user.getPassword(),
+                true,
+                true,
+                true,
+                true,
+                authorities);
     }
 
-    
 }

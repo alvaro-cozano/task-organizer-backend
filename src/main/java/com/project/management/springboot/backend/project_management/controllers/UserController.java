@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.management.springboot.backend.project_management.DTO.UserDTO;
-import com.project.management.springboot.backend.project_management.entities.User;
-import com.project.management.springboot.backend.project_management.services.UserService;
-import com.project.management.springboot.backend.project_management.utils.UserMapper;
+import com.project.management.springboot.backend.project_management.entities.models.User;
+import com.project.management.springboot.backend.project_management.services.user.UserService;
+import com.project.management.springboot.backend.project_management.utils.mapper.UserMapper;
 
 import jakarta.validation.Valid;
 

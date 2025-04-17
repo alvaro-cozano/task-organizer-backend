@@ -1,4 +1,4 @@
-package com.project.management.springboot.backend.project_management.entities;
+package com.project.management.springboot.backend.project_management.entities.models;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,9 +30,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name="user")
+@Table(name = "user")
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -74,36 +74,26 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Date updatedAt;
 
-    @JsonIgnoreProperties({"users", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "users", "handler", "hibernateLazyInitializer" })
     @ManyToMany
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id"),
-        uniqueConstraints = { @UniqueConstraint(columnNames = {"user_id", "role_id"}) }
-    )
-    
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"), uniqueConstraints = {
+            @UniqueConstraint(columnNames = { "user_id", "role_id" }) })
+
     private List<Role> roles;
 
-    @JsonIgnoreProperties({"boards", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "boards", "handler", "hibernateLazyInitializer" })
     @ManyToMany
-    @JoinTable(
-        name = "user_board",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "board_id"),
-        uniqueConstraints = { @UniqueConstraint(columnNames = {"user_id", "board_id"}) }
-    )
+    @JoinTable(name = "user_board", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "board_id"), uniqueConstraints = {
+            @UniqueConstraint(columnNames = { "user_id", "board_id" }) })
     private List<Board> boards = new ArrayList<>();
 
-    @JsonIgnoreProperties({"cards", "handler", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({ "cards", "handler", "hibernateLazyInitializer" })
     @ManyToMany(mappedBy = "users")
     private List<Card> cards = new ArrayList<>();
-
 
     public User() {
         roles = new ArrayList<>();
     }
-
 
     public User(@NotBlank String first_name, @NotBlank String last_name, @NotBlank String email,
             @NotBlank @Size(min = 4, max = 16) String username, @NotBlank String password, boolean admin,
@@ -176,7 +166,7 @@ public class User {
 
     public boolean isAdmin() {
         return roles != null && roles.stream()
-        .anyMatch(role -> "Admin".equals(role.getName()));
+                .anyMatch(role -> "Admin".equals(role.getName()));
     }
 
     public void setAdmin(boolean admin) {
@@ -254,5 +244,4 @@ public class User {
         return true;
     }
 
-    
 }

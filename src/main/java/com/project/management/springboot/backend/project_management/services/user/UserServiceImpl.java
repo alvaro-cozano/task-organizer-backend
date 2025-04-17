@@ -1,4 +1,4 @@
-package com.project.management.springboot.backend.project_management.services;
+package com.project.management.springboot.backend.project_management.services.user;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.project.management.springboot.backend.project_management.entities.Role;
-import com.project.management.springboot.backend.project_management.entities.User;
+import com.project.management.springboot.backend.project_management.entities.models.Role;
+import com.project.management.springboot.backend.project_management.entities.models.User;
 import com.project.management.springboot.backend.project_management.repositories.RoleRepository;
 import com.project.management.springboot.backend.project_management.repositories.UserRepository;
 

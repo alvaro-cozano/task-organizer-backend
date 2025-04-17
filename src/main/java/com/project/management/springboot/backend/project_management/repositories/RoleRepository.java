@@ -4,10 +4,10 @@ import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.project.management.springboot.backend.project_management.entities.Role;
+import com.project.management.springboot.backend.project_management.entities.models.Role;
 
-public interface RoleRepository extends CrudRepository<Role, Long>{
-    
+public interface RoleRepository extends CrudRepository<Role, Long> {
+
     Optional<Role> findByName(String name);
 
 }

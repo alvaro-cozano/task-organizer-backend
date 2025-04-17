@@ -2,8 +2,8 @@ package com.project.management.springboot.backend.project_management.repositorie
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.project.management.springboot.backend.project_management.entities.Status;
+import com.project.management.springboot.backend.project_management.entities.models.Status;
 
-public interface StatusRepository extends CrudRepository<Status, Long>{
-    
+public interface StatusRepository extends CrudRepository<Status, Long> {
+
 }

@@ -3,7 +3,7 @@ package com.project.management.springboot.backend.project_management.validation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.project.management.springboot.backend.project_management.services.UserService;
+import com.project.management.springboot.backend.project_management.services.user.UserService;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
