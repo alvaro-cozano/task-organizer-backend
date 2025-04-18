@@ -30,6 +30,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "card")
@@ -41,23 +42,23 @@ public class Card {
 
     @Column(unique = true)
     @NotBlank
-    private String title;
+    private String cardTitle;
 
-    private String desciption;
+    private String description;
 
     @Column(name = "start_date")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @NotBlank
+    @NotNull
     private Date start_date;
 
     @Column(name = "end_date")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @NotBlank
+    @NotNull
     private Date end_date;
 
     @Min(1)
     @Max(5)
-    @NotBlank
+    @NotNull
     private Long priority;
 
     @CreationTimestamp
@@ -93,17 +94,20 @@ public class Card {
     private List<User> users = new ArrayList<>();
 
     public Card() {
+        users = new ArrayList<>();
     }
 
-    public Card(@NotBlank String title, String desciption, @NotBlank Date start_date, @NotBlank Date end_date,
-            @Min(1) @Max(5) @NotBlank Long priority, Date createdAt, Date updatedAt) {
-        this.title = title;
-        this.desciption = desciption;
+    public Card(@NotBlank String cardTitle, String description, @NotBlank Date start_date, @NotBlank Date end_date,
+            @Min(1) @Max(5) @NotBlank Long priority, Date createdAt, Date updatedAt, Board board, Status status) {
+        this.cardTitle = cardTitle;
+        this.description = description;
         this.start_date = start_date;
         this.end_date = end_date;
         this.priority = priority;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.board = board;
+        this.status = status;
     }
 
     public Long getId() {
@@ -114,24 +118,24 @@ public class Card {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getCardTitle() {
+        return cardTitle;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setCardTitle(String cardTitle) {
+        this.cardTitle = cardTitle;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public String getDesciption() {
-        return desciption;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDesciption(String desciption) {
-        this.desciption = desciption;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Date getStart_date() {
@@ -190,5 +194,13 @@ public class Card {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
     }
 }

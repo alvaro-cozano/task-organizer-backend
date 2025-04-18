@@ -19,6 +19,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -49,13 +51,19 @@ public class Status {
     @JsonIgnoreProperties({ "status", "handler", "hibernateLazyInitializer" })
     private List<Card> cards = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "board_id")
+    @JsonIgnoreProperties({ "statuses", "handler", "hibernateLazyInitializer" })
+    private Board board;
+
     public Status() {
     }
 
-    public Status(String name, Date createdAt, Date updatedAt) {
+    public Status(String name, Date createdAt, Date updatedAt, Board board) {
         this.name = name;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.board = board;
     }
 
     public Long getId() {
@@ -94,5 +102,13 @@ public class Status {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
     }
 }

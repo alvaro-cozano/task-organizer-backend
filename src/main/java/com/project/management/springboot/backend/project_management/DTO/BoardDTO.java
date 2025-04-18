@@ -3,10 +3,15 @@ package com.project.management.springboot.backend.project_management.DTO;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.constraints.NotEmpty;
+
 public class BoardDTO {
 
     private Long id;
+
+    @NotEmpty
     private String boardName;
+
     private List<UserReferenceDTO> users; // Lista de usuarios asociados al tablero
 
     public BoardDTO() {
