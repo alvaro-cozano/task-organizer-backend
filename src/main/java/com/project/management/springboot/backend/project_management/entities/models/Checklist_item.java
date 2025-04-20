@@ -29,7 +29,7 @@ public class Checklist_item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column
     private String name;
 
     @Column(name = "completed", columnDefinition = "tinyint(1) default 0")

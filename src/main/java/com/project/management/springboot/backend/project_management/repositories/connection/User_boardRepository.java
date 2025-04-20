@@ -23,4 +23,6 @@ public interface User_boardRepository extends CrudRepository<User_board, UserBoa
     List<User_board> findByUserId(Long userId);
 
     boolean existsByUser_idAndBoard_id(Long userId, Long boardId);
+
+    boolean existsByUser_idAndBoard_idAndIsAdminTrue(Long userId, Long boardId);
 }

@@ -40,7 +40,7 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column
     @NotBlank
     private String cardTitle;
 

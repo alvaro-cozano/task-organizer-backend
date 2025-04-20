@@ -10,4 +10,10 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
     Optional<Status> findByNameIgnoreCase(String name);
 
     List<Status> findByBoardId(Long boardId);
+
+    boolean existsByBoardIdAndName(Long boardId, String name);
+
+    boolean existsByBoardIdAndNameAndIdNot(Long boardId, String name, Long statusId);
+
+    void deleteByBoardId(Long id);
 }

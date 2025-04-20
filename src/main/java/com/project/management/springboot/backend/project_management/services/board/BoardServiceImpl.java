@@ -15,10 +15,14 @@ import com.project.management.springboot.backend.project_management.DTO.BoardDTO
 import com.project.management.springboot.backend.project_management.DTO.UserReferenceDTO;
 import com.project.management.springboot.backend.project_management.entities.connection.User_board;
 import com.project.management.springboot.backend.project_management.entities.models.Board;
+import com.project.management.springboot.backend.project_management.entities.models.Card;
 import com.project.management.springboot.backend.project_management.entities.models.User;
 import com.project.management.springboot.backend.project_management.repositories.BoardRepository;
+import com.project.management.springboot.backend.project_management.repositories.CardRepository;
+import com.project.management.springboot.backend.project_management.repositories.StatusRepository;
 import com.project.management.springboot.backend.project_management.repositories.UserRepository;
 import com.project.management.springboot.backend.project_management.repositories.connection.User_boardRepository;
+import com.project.management.springboot.backend.project_management.repositories.connection.User_cardRepository;
 import com.project.management.springboot.backend.project_management.utils.mapper.BoardMapper;
 
 @Service
@@ -32,6 +36,15 @@ public class BoardServiceImpl implements BoardService {
 
     @Autowired
     private User_boardRepository userBoardRepository;
+
+    @Autowired
+    private CardRepository cardRepository;
+
+    @Autowired
+    private User_cardRepository userCardRepository;
+
+    @Autowired
+    private StatusRepository statusRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -59,6 +72,16 @@ public class BoardServiceImpl implements BoardService {
         }
 
         User currentUser = optionalCurrentUser.get();
+
+        // Validar si ya existe un tablero con ese nombre para este usuario
+        List<User_board> userBoards = userBoardRepository.findByUserId(currentUser.getId());
+        for (User_board ub : userBoards) {
+            Optional<Board> board = repository.findById(ub.getBoard_id());
+            if (board.isPresent() && board.get().getBoardName().equalsIgnoreCase(boardDTO.getBoardName())) {
+                throw new RuntimeException("Ya existe un tablero con ese nombre para este usuario.");
+            }
+        }
+
         List<User> users = new ArrayList<>();
         users.add(currentUser);
 
@@ -94,7 +117,7 @@ public class BoardServiceImpl implements BoardService {
 
         // Buscar el usuario en la base de datos por nombre de usuario
         Optional<User> optionalCurrentUser = userRepository.findByUsername(username);
-        User currentUser = optionalCurrentUser.orElseThrow(); // Obtiene el usuario actual
+        User currentUser = optionalCurrentUser.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         // Buscar el tablero por su ID
         Optional<Board> boardOptional = repository.findById(id);
@@ -103,8 +126,28 @@ public class BoardServiceImpl implements BoardService {
             Optional<User_board> userBoardOptional = userBoardRepository.findByUserIdAndBoardId(currentUser.getId(),
                     id);
             if (userBoardOptional.isPresent() && userBoardOptional.get().getIsAdmin()) {
-                // Si el usuario es administrador, eliminamos la relación y el tablero
-                userBoardRepository.deleteByBoardId(id); // Eliminar las relaciones en la tabla intermedia
+                // Si el usuario es administrador
+
+                // Eliminar las relaciones de tarjetas con los usuarios (user_card)
+                List<Long> cardIds = cardRepository.findByBoardId(id).stream()
+                        .map(Card::getId)
+                        .collect(Collectors.toList());
+                if (!cardIds.isEmpty()) {
+                    // Eliminar las relaciones entre usuarios y tarjetas asociadas al tablero
+                    userCardRepository.deleteByCardIdIn(cardIds); // Utilizamos el método deleteByCardIdIn para eliminar
+                                                                  // las relaciones
+                }
+
+                // Eliminar las tarjetas asociadas al tablero
+                cardRepository.deleteByBoardId(id); // Eliminar las tarjetas asociadas al tablero
+
+                // Eliminar las relaciones en la tabla intermedia entre usuarios y tableros
+                userBoardRepository.deleteByBoardId(id); // Eliminar las relaciones en la tabla intermedia (user_board)
+
+                // Eliminar los estados de las tarjetas asociadas al tablero, si es necesario
+                statusRepository.deleteByBoardId(id); // Eliminar los estados asociados al tablero
+
+                // Finalmente, eliminar el tablero
                 repository.delete(boardDb); // Eliminar el tablero
             } else {
                 throw new RuntimeException("No tienes permiso para eliminar este tablero"); // Lanzar excepción si no es
@@ -122,7 +165,6 @@ public class BoardServiceImpl implements BoardService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        // Buscar el usuario actual
         Optional<User> optionalCurrentUser = userRepository.findByUsername(username);
         if (optionalCurrentUser.isEmpty()) {
             return Optional.empty();
@@ -130,15 +172,24 @@ public class BoardServiceImpl implements BoardService {
 
         User currentUser = optionalCurrentUser.get();
 
-        // Verificar si el usuario es admin del tablero
         Optional<User_board> userBoardRelation = userBoardRepository.findByUserIdAndBoardId(currentUser.getId(), id);
         if (userBoardRelation.isEmpty() || !userBoardRelation.get().getIsAdmin()) {
             return Optional.empty();
         }
 
-        // Obtener usuarios a asociar (desde DTOs)
+        // Validar si el usuario ya tiene otro tablero con ese nombre
+        List<User_board> userBoards = userBoardRepository.findByUserId(currentUser.getId());
+        for (User_board ub : userBoards) {
+            if (!ub.getBoard_id().equals(id)) { // Excluir el actual
+                Optional<Board> board = repository.findById(ub.getBoard_id());
+                if (board.isPresent() && board.get().getBoardName().equalsIgnoreCase(boardDTO.getBoardName())) {
+                    throw new RuntimeException("Ya existe otro tablero con ese nombre para este usuario.");
+                }
+            }
+        }
+
         List<User> usersToAssociate = new ArrayList<>();
-        usersToAssociate.add(currentUser); // Siempre incluir al usuario actual
+        usersToAssociate.add(currentUser);
 
         if (boardDTO.getUsers() != null) {
             for (UserReferenceDTO userDTO : boardDTO.getUsers()) {
@@ -147,10 +198,8 @@ public class BoardServiceImpl implements BoardService {
             }
         }
 
-        // Eliminar duplicados
         usersToAssociate = usersToAssociate.stream().distinct().collect(Collectors.toList());
 
-        // Verificar existencia del tablero
         Optional<Board> optionalBoard = repository.findById(id);
         if (optionalBoard.isEmpty()) {
             return Optional.empty();
@@ -160,21 +209,16 @@ public class BoardServiceImpl implements BoardService {
         existingBoard.setBoardName(boardDTO.getBoardName());
         existingBoard.setUsers(usersToAssociate);
 
-        // Guardar el tablero actualizado
         Board savedBoard = repository.save(existingBoard);
 
-        // Eliminar relaciones de usuarios que ya no están en la lista
         for (User_board existingRelation : userBoardRepository.findByBoardId(savedBoard.getId())) {
             if (!usersToAssociate.stream().anyMatch(u -> u.getId().equals(existingRelation.getUser_id()))) {
                 userBoardRepository.delete(existingRelation);
             }
         }
 
-        // Crear nuevas relaciones en la tabla intermedia
         for (User user : usersToAssociate) {
-            boolean isAdmin = user.getId().equals(currentUser.getId()); // Solo el actual es admin
-
-            // Verificar si ya existe la relación antes de agregarla
+            boolean isAdmin = user.getId().equals(currentUser.getId());
             Optional<User_board> existingRelation = userBoardRepository.findByUserIdAndBoardId(user.getId(),
                     savedBoard.getId());
             if (existingRelation.isEmpty()) {
@@ -216,10 +260,5 @@ public class BoardServiceImpl implements BoardService {
         return boards.stream()
                 .map(BoardMapper::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean existsByBoardName(String boardName) {
-        return repository.existsByBoardName(boardName);
     }
 }

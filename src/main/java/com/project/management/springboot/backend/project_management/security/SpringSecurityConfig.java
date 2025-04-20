@@ -45,6 +45,7 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/check-token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/check-email").permitAll()
                 .anyRequest().authenticated())
                 .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService))
                 .addFilterAfter(new JwtValidationFilter(authenticationManager, jwtService),

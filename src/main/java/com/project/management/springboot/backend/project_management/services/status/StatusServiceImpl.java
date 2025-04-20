@@ -26,8 +26,13 @@ public class StatusServiceImpl implements StatusService {
                 .collect(Collectors.toList());
     }
 
-    @Override
     public StatusDTO createStatus(StatusDTO statusDTO) {
+        // Verifica si ya existe un estado con el mismo nombre en el tablero
+        boolean exists = statusRepository.existsByBoardIdAndName(statusDTO.getBoardId(), statusDTO.getName());
+        if (exists) {
+            throw new IllegalArgumentException("Ya existe un estado con ese nombre en este tablero");
+        }
+
         Status status = StatusMapper.toEntity(statusDTO);
 
         if (statusDTO.getBoardId() != null) {
@@ -44,10 +49,16 @@ public class StatusServiceImpl implements StatusService {
     public StatusDTO updateStatus(Long statusId, StatusDTO statusDTO) {
         Optional<Status> existingOpt = statusRepository.findById(statusId);
         if (existingOpt.isEmpty()) {
-            throw new IllegalArgumentException("Status not found");
+            throw new IllegalArgumentException("Status no encontrado");
         }
 
         Status existing = existingOpt.get();
+        // Verifica si ya existe un estado con el mismo nombre en el tablero, excluyendo
+        // el estado actual
+        if (statusRepository.existsByBoardIdAndNameAndIdNot(statusDTO.getBoardId(), statusDTO.getName(), statusId)) {
+            throw new IllegalArgumentException("Ya existe un estado con ese nombre en este tablero");
+        }
+
         existing.setName(statusDTO.getName());
 
         if (statusDTO.getBoardId() != null) {

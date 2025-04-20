@@ -16,8 +16,6 @@ public interface CardService {
 
     void delete(Long id);
 
-    boolean existsByCardTitle(String cardTitle);
-
     List<CardDTO> findCardsByCurrentUser();
 
     void addCardToUser(Long card_id, Long user_id);

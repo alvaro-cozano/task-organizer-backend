@@ -17,7 +17,5 @@ public interface BoardService {
 
     Optional<BoardDTO> delete(Long id);
 
-    boolean existsByBoardName(String boardName);
-
     List<BoardDTO> findBoardsByCurrentUser();
 }

@@ -68,8 +68,17 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public CardDTO save(CardDTO cardDTO) {
-        List<User> users = new ArrayList<>();
+        // Validar si ya existe una tarjeta con el mismo título en el tablero
+        List<Card> cards = cardRepository.findByBoardId(cardDTO.getBoard_id());
+        for (Card card : cards) {
+            if (!card.getId().equals(cardDTO.getId())) { // Excluir la tarjeta actual (si se está actualizando)
+                if (card.getCardTitle().equalsIgnoreCase(cardDTO.getCardTitle())) {
+                    throw new RuntimeException("Ya existe una tarjeta con el mismo titulo en este tablero");
+                }
+            }
+        }
 
+        List<User> users = new ArrayList<>();
         if (cardDTO.getUsers() != null) {
             for (UserReferenceDTO userDTO : cardDTO.getUsers()) {
                 userRepository.findByEmail(userDTO.getEmail()).ifPresent(users::add);
@@ -93,11 +102,20 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public Optional<CardDTO> update(Long id, CardDTO cardDTO) {
         Optional<Card> optionalCard = cardRepository.findById(id);
-        if (optionalCard.isEmpty())
+        if (optionalCard.isEmpty()) {
             return Optional.empty();
+        }
+
+        List<Card> cards = cardRepository.findByBoardId(cardDTO.getBoard_id());
+        for (Card card : cards) {
+            if (!card.getId().equals(cardDTO.getId())) { // Excluir la tarjeta actual (si se está actualizando)
+                if (card.getCardTitle().equalsIgnoreCase(cardDTO.getCardTitle())) {
+                    throw new RuntimeException("Ya existe una tarjeta con el mismo titulo en este tablero");
+                }
+            }
+        }
 
         List<User> usersToAssociate = new ArrayList<>();
-
         if (cardDTO.getUsers() != null) {
             for (UserReferenceDTO userDTO : cardDTO.getUsers()) {
                 userRepository.findByEmail(userDTO.getEmail()).ifPresent(usersToAssociate::add);
@@ -107,18 +125,17 @@ public class CardServiceImpl implements CardService {
         usersToAssociate = usersToAssociate.stream().distinct().collect(Collectors.toList());
 
         Card card = optionalCard.get();
-        card.setCardTitle(cardDTO.getCardTitle()); // Actualizar el título
-        card.setDescription(cardDTO.getDescription()); // Actualizar la descripción
-        card.setStart_date(cardDTO.getStartDate()); // Actualizar la fecha de inicio
-        card.setEnd_date(cardDTO.getEndDate()); // Actualizar la fecha de fin
-        card.setPriority(cardDTO.getPriority()); // Actualizar la prioridad
-        card.setBoard(boardRepository.findById(cardDTO.getBoard_id()).orElse(null)); // Actualizar el tablero
-        card.setStatus(statusRepository.findById(cardDTO.getStatus_id()).orElse(null)); // Actualizar el estado
-        card.setUsers(usersToAssociate); // Actualizar los usuarios
+        card.setCardTitle(cardDTO.getCardTitle());
+        card.setDescription(cardDTO.getDescription());
+        card.setStart_date(cardDTO.getStartDate());
+        card.setEnd_date(cardDTO.getEndDate());
+        card.setPriority(cardDTO.getPriority());
+        card.setBoard(boardRepository.findById(cardDTO.getBoard_id()).orElse(null));
+        card.setStatus(statusRepository.findById(cardDTO.getStatus_id()).orElse(null));
+        card.setUsers(usersToAssociate);
 
         Card savedCard = cardRepository.save(card);
 
-        // Eliminar relaciones que ya no deberían existir
         List<User_card> existingRelations = userCardRepository.findByCardId(savedCard.getId());
         for (User_card existing : existingRelations) {
             if (usersToAssociate.stream().noneMatch(u -> u.getId().equals(existing.getUser_id()))) {
@@ -126,7 +143,6 @@ public class CardServiceImpl implements CardService {
             }
         }
 
-        // Crear nuevas relaciones si no existen
         for (User user : usersToAssociate) {
             Optional<User_card> existing = userCardRepository.findByUserIdAndCardId(user.getId(), savedCard.getId());
             if (existing.isEmpty()) {
@@ -148,12 +164,6 @@ public class CardServiceImpl implements CardService {
 
         // Eliminar la tarjeta
         cardRepository.delete(card);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsByCardTitle(String cardTitle) {
-        return cardRepository.existsByCardTitle(cardTitle);
     }
 
     @Override

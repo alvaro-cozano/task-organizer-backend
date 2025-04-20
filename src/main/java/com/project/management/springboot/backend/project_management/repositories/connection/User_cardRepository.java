@@ -35,4 +35,16 @@ public interface User_cardRepository extends CrudRepository<User_card, UserCardI
     void deleteByCardId(@Param("cardId") Long cardId);
 
     Optional<User_card> findByUserAndCard(User user, Card card);;
+
+    // Eliminar relaciones por tablero
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM User_card uc WHERE uc.card.board.id = :boardId")
+    void deleteByBoardId(@Param("boardId") Long boardId);
+
+    // Eliminar relaciones por lista de IDs de tarjetas
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM User_card uc WHERE uc.card.id IN :cardIds")
+    void deleteByCardIdIn(@Param("cardIds") List<Long> cardIds);
 }
