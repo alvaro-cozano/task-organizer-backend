@@ -30,13 +30,12 @@ public class JwtService {
         return objectMapper;
     }
 
-    public String createToken(Authentication authResult) {
+    public String createToken(Authentication authResult, String email) {
         String username = authResult.getName();
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
         return generateToken(username, roles);
     }
 
-    // ✅ Método requerido por JwtAuthenticationFilter
     public String generateToken(String username, Collection<? extends GrantedAuthority> roles) {
         try {
             String authoritiesJson = objectMapper.writeValueAsString(roles);
@@ -56,7 +55,7 @@ public class JwtService {
 
     public Claims parseToken(String token) throws JwtException {
         return Jwts.parser()
-                .verifyWith(TokenJwtConfig.SECRET_KEY)
+                .verifyWith(SECRET_KEY)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

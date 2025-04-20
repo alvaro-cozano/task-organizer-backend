@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.project.management.springboot.backend.project_management.repositories.UserRepository;
 import com.project.management.springboot.backend.project_management.security.filter.JwtAuthenticationFilter;
 import com.project.management.springboot.backend.project_management.security.filter.JwtValidationFilter;
 
@@ -37,9 +38,11 @@ public class SpringSecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http,
+    SecurityFilterChain filterChain(
+            HttpSecurity http,
             AuthenticationManager authenticationManager,
-            JwtService jwtService) throws Exception {
+            JwtService jwtService,
+            UserRepository userRepository) throws Exception {
         return http.authorizeHttpRequests(authz -> authz
                 .requestMatchers(HttpMethod.GET, "/auth").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/check-token").permitAll()
@@ -47,7 +50,7 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/check-email").permitAll()
                 .anyRequest().authenticated())
-                .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService, userRepository))
                 .addFilterAfter(new JwtValidationFilter(authenticationManager, jwtService),
                         JwtAuthenticationFilter.class)
                 .csrf(config -> config.disable())

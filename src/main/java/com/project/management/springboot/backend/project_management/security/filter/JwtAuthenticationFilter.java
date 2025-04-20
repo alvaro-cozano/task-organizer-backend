@@ -2,6 +2,7 @@ package com.project.management.springboot.backend.project_management.security.fi
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.management.springboot.backend.project_management.entities.models.User;
+import com.project.management.springboot.backend.project_management.repositories.UserRepository;
 import com.project.management.springboot.backend.project_management.security.JwtService;
 
 import jakarta.servlet.FilterChain;
@@ -27,10 +28,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtService jwtService) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtService jwtService,
+            UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -59,18 +63,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             FilterChain chain, Authentication authResult)
             throws IOException, ServletException {
 
-        org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) authResult
+        org.springframework.security.core.userdetails.User userDetails = (org.springframework.security.core.userdetails.User) authResult
                 .getPrincipal();
-        Collection<? extends GrantedAuthority> roles = user.getAuthorities();
+        Collection<? extends GrantedAuthority> roles = userDetails.getAuthorities();
 
-        // ✅ Generar token usando el JwtService
-        String token = jwtService.generateToken(user.getUsername(), roles);
+        // Buscar el email desde la base de datos
+        String username = userDetails.getUsername();
+        String email = userRepository.findByUsername(username)
+                .map(User::getEmail)
+                .orElse("no-email@example.com");
+
+        // Generar token usando el JwtService
+        String token = jwtService.generateToken(username, roles);
 
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
 
         Map<String, String> body = new HashMap<>();
         body.put("token", token);
-        body.put("username", user.getUsername());
+        body.put("username", username);
+        body.put("email", email);
         body.put("message", "Sesión iniciada correctamente");
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
