@@ -49,7 +49,12 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/check-email").permitAll()
+                .requestMatchers("/oauth2/**").permitAll()
+
                 .anyRequest().authenticated())
+                .oauth2Login(oauth -> oauth
+                    .defaultSuccessUrl("http://localhost:5173", true)
+                )
                 .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService, userRepository))
                 .addFilterAfter(new JwtValidationFilter(authenticationManager, jwtService),
                         JwtAuthenticationFilter.class)
@@ -63,7 +68,7 @@ public class SpringSecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-token"));
         config.setAllowCredentials(true);
 

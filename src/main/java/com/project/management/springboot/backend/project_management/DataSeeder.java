@@ -49,32 +49,39 @@ public class DataSeeder {
 
             if (userRepository.count() == 0) {
                 BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-                String encodedPassword = passwordEncoder.encode("alvaroc");
+                String encodedPassword1 = passwordEncoder.encode("alvaroc");
+                String encodedPassword2 = passwordEncoder.encode("pablocoz");
                 Date currentDate = new Date(0);
-                User user0 = new User("Alvaro", "Cozano", "alvarocozano@gmail.com", "alvaroc", encodedPassword, true,
+                User user0 = new User("Alvaro", "Cozano", "alvarocozano@gmail.com", "alvaroc", encodedPassword1, true,
+                        currentDate, currentDate);
+                User user1 = new User("Pablo", "Cozano", "pablocozano@gmail.com", "pablocoz", encodedPassword2, false,
                         currentDate, currentDate);
 
-                userRepository.save(user0);
+                userRepository.saveAll(Arrays.asList(user0, user1));
             }
             ;
 
             if (user_rolesRepository.count() == 0) {
-                User_roles roleUser = new User_roles(1L, 1L);
+                User_roles roleUser1 = new User_roles(1L, 1L);
+                User_roles roleUser2 = new User_roles(2L, 1L);
                 User_roles roleAdmin = new User_roles(1L, 2L);
 
-                user_rolesRepository.saveAll(Arrays.asList(roleUser, roleAdmin));
+                user_rolesRepository.saveAll(Arrays.asList(roleUser1, roleUser2, roleAdmin));
             }
             ;
 
             if (boardRepository.count() == 0) {
-                Board board = new Board("TFG", new Date(0), new Date(0));
-                boardRepository.save(board);
+                Board board1 = new Board("TFG", new Date(0), new Date(0));
+                Board board2 = new Board("Viewnext", new Date(0), new Date(0));
+                boardRepository.saveAll(Arrays.asList(board1, board2));
             }
             ;
 
             if (user_boardRepository.count() == 0) {
-                User_board user_board = new User_board(1L, 1L, true);
-                user_boardRepository.save(user_board);
+                User_board user_board1 = new User_board(1L, 1L, true);
+                User_board user_board2 = new User_board(2L, 1L, false);
+                User_board user_board3 = new User_board(1L, 2L, true);
+                user_boardRepository.saveAll(Arrays.asList(user_board1, user_board2, user_board3));
             }
             ;
 

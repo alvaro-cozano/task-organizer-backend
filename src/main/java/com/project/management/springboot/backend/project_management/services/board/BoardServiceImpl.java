@@ -111,51 +111,31 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public Optional<BoardDTO> delete(Long id) {
-        // Obtener el usuario actual desde el contexto de seguridad
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        // Buscar el usuario en la base de datos por nombre de usuario
         Optional<User> optionalCurrentUser = userRepository.findByUsername(username);
         User currentUser = optionalCurrentUser.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Buscar el tablero por su ID
         Optional<Board> boardOptional = repository.findById(id);
         boardOptional.ifPresent(boardDb -> {
-            // Verificar si el usuario actual es administrador en el tablero
             Optional<User_board> userBoardOptional = userBoardRepository.findByUserIdAndBoardId(currentUser.getId(),
                     id);
             if (userBoardOptional.isPresent() && userBoardOptional.get().getIsAdmin()) {
-                // Si el usuario es administrador
-
-                // Eliminar las relaciones de tarjetas con los usuarios (user_card)
                 List<Long> cardIds = cardRepository.findByBoardId(id).stream()
                         .map(Card::getId)
                         .collect(Collectors.toList());
                 if (!cardIds.isEmpty()) {
-                    // Eliminar las relaciones entre usuarios y tarjetas asociadas al tablero
-                    userCardRepository.deleteByCardIdIn(cardIds); // Utilizamos el método deleteByCardIdIn para eliminar
-                                                                  // las relaciones
+                    userCardRepository.deleteByCardIdIn(cardIds);
                 }
-
-                // Eliminar las tarjetas asociadas al tablero
-                cardRepository.deleteByBoardId(id); // Eliminar las tarjetas asociadas al tablero
-
-                // Eliminar las relaciones en la tabla intermedia entre usuarios y tableros
-                userBoardRepository.deleteByBoardId(id); // Eliminar las relaciones en la tabla intermedia (user_board)
-
-                // Eliminar los estados de las tarjetas asociadas al tablero, si es necesario
-                statusRepository.deleteByBoardId(id); // Eliminar los estados asociados al tablero
-
-                // Finalmente, eliminar el tablero
-                repository.delete(boardDb); // Eliminar el tablero
+                cardRepository.deleteByBoardId(id);
+                userBoardRepository.deleteByBoardId(id);
+                statusRepository.deleteByBoardId(id);
+                repository.delete(boardDb);
             } else {
-                throw new RuntimeException("No tienes permiso para eliminar este tablero"); // Lanzar excepción si no es
-                                                                                            // admin
+                throw new RuntimeException("No tienes permiso para eliminar este tablero");
             }
         });
-
-        // Retornar el DTO del tablero eliminado
         return boardOptional.map(BoardMapper::toDTO);
     }
 
@@ -177,10 +157,9 @@ public class BoardServiceImpl implements BoardService {
             return Optional.empty();
         }
 
-        // Validar si el usuario ya tiene otro tablero con ese nombre
         List<User_board> userBoards = userBoardRepository.findByUserId(currentUser.getId());
         for (User_board ub : userBoards) {
-            if (!ub.getBoard_id().equals(id)) { // Excluir el actual
+            if (!ub.getBoard_id().equals(id)) {
                 Optional<Board> board = repository.findById(ub.getBoard_id());
                 if (board.isPresent() && board.get().getBoardName().equalsIgnoreCase(boardDTO.getBoardName())) {
                     throw new RuntimeException("Ya existe otro tablero con ese nombre para este usuario.");
@@ -233,7 +212,6 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public List<BoardDTO> findBoardsByCurrentUser() {
-        // Obtener el usuario autenticado
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -244,15 +222,12 @@ public class BoardServiceImpl implements BoardService {
 
         User currentUser = optionalCurrentUser.get();
 
-        // Obtener relaciones User_board por ID del usuario
         List<User_board> userBoards = userBoardRepository.findByUserId(currentUser.getId());
 
-        // Extraer los IDs de los tableros
         List<Long> boardIds = userBoards.stream()
                 .map(User_board::getBoard_id)
                 .collect(Collectors.toList());
 
-        // Buscar los tableros por sus IDs
         Iterable<Board> iterableBoards = repository.findAllById(boardIds);
         List<Board> boards = new ArrayList<>();
         iterableBoards.forEach(boards::add);
