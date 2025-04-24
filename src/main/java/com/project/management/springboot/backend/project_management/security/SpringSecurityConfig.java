@@ -49,13 +49,9 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/check-email").permitAll()
-                .requestMatchers("/oauth2/**").permitAll()
-
+                .requestMatchers(HttpMethod.POST,"/auth/login/google").permitAll()
                 .anyRequest().authenticated())
-                .oauth2Login(oauth -> oauth
-                    .defaultSuccessUrl("http://localhost:5173", true)
-                )
-                .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService, userRepository))
+                 .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService, userRepository))
                 .addFilterAfter(new JwtValidationFilter(authenticationManager, jwtService),
                         JwtAuthenticationFilter.class)
                 .csrf(config -> config.disable())

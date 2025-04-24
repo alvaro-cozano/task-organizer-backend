@@ -37,10 +37,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     private String first_name;
-
-    @NotBlank
     private String last_name;
 
     @ExistsByEmail

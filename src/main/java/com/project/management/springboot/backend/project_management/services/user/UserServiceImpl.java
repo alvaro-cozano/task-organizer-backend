@@ -53,13 +53,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean existsByUsername(String username) {
-        System.out.println(repository.existsByUsername(username));
         return repository.existsByUsername(username);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        System.out.println(repository.existsByEmail(email));
         return repository.existsByEmail(email);
     }
 }

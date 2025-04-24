@@ -2,6 +2,7 @@ package com.project.management.springboot.backend.project_management.security;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.management.springboot.backend.project_management.entities.models.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -20,7 +22,7 @@ import static com.project.management.springboot.backend.project_management.secur
 @Service
 public class JwtService {
 
-    private static final long EXPIRATION_TIME = 3600000; // 1 hora
+    private static final long EXPIRATION_TIME = 3600000;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public static final TypeReference<Collection<SimpleGrantedAuthority>> GRANTED_AUTHORITY_LIST_TYPE = new TypeReference<>() {
@@ -35,6 +37,17 @@ public class JwtService {
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
         return generateToken(username, roles);
     }
+
+    public String createGoogleToken(User user) {
+        return Jwts.builder()
+            .subject(user.getUsername())
+            .claim("email", user.getEmail())
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+            .signWith(SECRET_KEY)
+            .compact();
+    }
+    
 
     public String generateToken(String username, Collection<? extends GrantedAuthority> roles) {
         try {
@@ -60,4 +73,16 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+    public String createTokenForGoogleUser(User user, Collection<? extends GrantedAuthority> authorities) {
+        return Jwts.builder()
+                .subject(user.getUsername())
+                .claim("email", user.getEmail())
+                .claim("authorities", authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(SECRET_KEY)
+                .compact();
+    }
+    
 }
