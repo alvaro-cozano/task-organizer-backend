@@ -57,15 +57,35 @@ public class AuthController {
             Claims claims = jwtService.parseToken(token);
             String username = claims.getSubject();
 
-            String authoritiesJson = (String) claims.get("authorities");
+            Object rawAuthorities = claims.get("authorities");
+
             Collection<GrantedAuthority> authorities = new ArrayList<>();
 
-            JsonNode rolesNode = jwtService.getObjectMapper().readTree(authoritiesJson);
-            for (JsonNode roleNode : rolesNode) {
-                String roleName = roleNode.path("name").asText();
-                if (!roleName.isEmpty()) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName.toUpperCase()));
+            if (rawAuthorities == null) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            } else if (rawAuthorities instanceof String) {
+                String authoritiesJson = (String) rawAuthorities;
+                JsonNode rolesNode = jwtService.getObjectMapper().readTree(authoritiesJson);
+                for (JsonNode roleNode : rolesNode) {
+                    String roleName = roleNode.path("name").asText();
+                    if (!roleName.isEmpty()) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName.toUpperCase()));
+                    }
                 }
+            } else if (rawAuthorities instanceof Collection) {
+                Collection<?> authoritiesList = (Collection<?>) rawAuthorities;
+                for (Object roleObj : authoritiesList) {
+                    if (roleObj instanceof Map) {
+                        Map<?, ?> roleMap = (Map<?, ?>) roleObj;
+                        Object nameObj = roleMap.get("authority");
+                        if (nameObj instanceof String) {
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + ((String) nameObj).toUpperCase()));
+                        }
+                    } else if (roleObj instanceof String) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + ((String) roleObj).toUpperCase()));
+                    }
+                }
+            } else {
             }
 
             User user = userRepository.findByUsername(username).orElse(null);
