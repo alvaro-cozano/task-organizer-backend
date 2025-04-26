@@ -25,6 +25,12 @@ public class User_board {
     @Column(nullable = false)
     private boolean isAdmin;
 
+    @Column(nullable = true)
+    private Integer posX;
+
+    @Column(nullable = true)
+    private Integer posY;
+
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
@@ -41,6 +47,14 @@ public class User_board {
         this.user_id = user_id;
         this.board_id = board_id;
         this.isAdmin = isAdmin;
+    }
+
+    public User_board(Long user_id, Long board_id, boolean isAdmin, Integer posX, Integer posY) {
+        this.user_id = user_id;
+        this.board_id = board_id;
+        this.isAdmin = isAdmin;
+        this.posX = posX;
+        this.posY = posY;
     }
 
     public Long getUser_id() {
@@ -65,6 +79,22 @@ public class User_board {
 
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
+    }
+
+    public Integer getPosX() {
+        return posX;
+    }
+
+    public void setPosX(Integer posX) {
+        this.posX = posX;
+    }
+
+    public Integer getPosY() {
+        return posY;
+    }
+
+    public void setPosY(Integer posY) {
+        this.posY = posY;
     }
 
     @Override

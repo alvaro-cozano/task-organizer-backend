@@ -78,9 +78,9 @@ public class DataSeeder {
             ;
 
             if (user_boardRepository.count() == 0) {
-                User_board user_board1 = new User_board(1L, 1L, true);
-                User_board user_board2 = new User_board(2L, 1L, false);
-                User_board user_board3 = new User_board(1L, 2L, true);
+                User_board user_board1 = new User_board(1L, 1L, true, 0, 1);
+                User_board user_board2 = new User_board(2L, 1L, false, 0, 1);
+                User_board user_board3 = new User_board(1L, 2L, true, 0, 2);
                 user_boardRepository.saveAll(Arrays.asList(user_board1, user_board2, user_board3));
             }
             ;
