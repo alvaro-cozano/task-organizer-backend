@@ -1,5 +1,6 @@
 package com.project.management.springboot.backend.project_management.utils.mapper;
 
+import com.project.management.springboot.backend.project_management.DTO.UserBoardReferenceDTO;
 import com.project.management.springboot.backend.project_management.DTO.User_boardDTO;
 import com.project.management.springboot.backend.project_management.entities.connection.User_board;
 
@@ -14,6 +15,13 @@ public class User_BoardMapper {
                 entity.getBoard_id(),
                 entity.getPosX(),
                 entity.getPosY());
+    }
+
+    public static UserBoardReferenceDTO toUserBoardReferenceDTO(User_boardDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return new UserBoardReferenceDTO(dto.getPosX(), dto.getPosY());
     }
 
     public static User_board toEntity(User_boardDTO dto) {

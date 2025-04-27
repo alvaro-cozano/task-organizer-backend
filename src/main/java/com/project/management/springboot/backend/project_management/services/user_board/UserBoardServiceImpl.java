@@ -5,9 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.management.springboot.backend.project_management.DTO.User_boardDTO;
-import com.project.management.springboot.backend.project_management.entities.connection.User_board;
 import com.project.management.springboot.backend.project_management.repositories.connection.User_boardRepository;
-import com.project.management.springboot.backend.project_management.entities.connection.UserBoardId;
 
 @Service
 public class UserBoardServiceImpl implements UserBoardService {
@@ -17,14 +15,16 @@ public class UserBoardServiceImpl implements UserBoardService {
 
     @Override
     @Transactional
-    public void updateBoardPosition(User_boardDTO UpdateUserBoardDTO) {
-        UserBoardId id = new UserBoardId(UpdateUserBoardDTO.getUser_id(), UpdateUserBoardDTO.getBoard_id());
-        User_board userBoard = userBoardRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Asociación usuario-tablero no encontrada"));
+    public void updateBoardPosition(User_boardDTO updateUserBoardDTO) {
+        if (!userBoardRepository.existsByUser_idAndBoard_id(updateUserBoardDTO.getUser_id(),
+                updateUserBoardDTO.getBoard_id())) {
+            throw new RuntimeException("Asociación usuario-tablero no encontrada");
+        }
 
-        userBoard.setPosX(UpdateUserBoardDTO.getPosX());
-        userBoard.setPosY(UpdateUserBoardDTO.getPosY());
-
-        userBoardRepository.save(userBoard);
+        userBoardRepository.updateBoardPosition(
+                updateUserBoardDTO.getUser_id(),
+                updateUserBoardDTO.getBoard_id(),
+                updateUserBoardDTO.getPosX(),
+                updateUserBoardDTO.getPosY());
     }
 }

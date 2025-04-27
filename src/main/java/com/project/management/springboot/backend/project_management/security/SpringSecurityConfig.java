@@ -49,9 +49,10 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/check-email").permitAll()
-                .requestMatchers(HttpMethod.POST,"/auth/login/google").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login/google").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/user-board").permitAll()
                 .anyRequest().authenticated())
-                 .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService, userRepository))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtService, userRepository))
                 .addFilterAfter(new JwtValidationFilter(authenticationManager, jwtService),
                         JwtAuthenticationFilter.class)
                 .csrf(config -> config.disable())
@@ -64,7 +65,7 @@ public class SpringSecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-token"));
         config.setAllowCredentials(true);
 

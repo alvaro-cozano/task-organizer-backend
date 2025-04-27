@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import com.project.management.springboot.backend.project_management.entities.connection.UserBoardId;
 import com.project.management.springboot.backend.project_management.entities.connection.User_board;
@@ -34,4 +35,7 @@ public interface User_boardRepository extends CrudRepository<User_board, UserBoa
     @Transactional
     @Query("UPDATE User_board ub SET ub.posX = :posX, ub.posY = :posY WHERE ub.user_id = :userId AND ub.board_id = :boardId")
     void updateBoardPosition(Long userId, Long boardId, Integer posX, Integer posY);
+
+    @Query("SELECT MAX(ub.posX), MAX(ub.posY) FROM User_board ub WHERE ub.user.id = :userId")
+    List<Object[]> findMaxPosByUserId(@Param("userId") Long userId);
 }

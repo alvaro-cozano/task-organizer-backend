@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.project.management.springboot.backend.project_management.security.TokenJwtConfig.*;
 
@@ -69,17 +70,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // Buscar el email desde la base de datos
         String username = userDetails.getUsername();
+        Optional<User> optionalUser = userRepository.findByUsername(username);
         String email = userRepository.findByUsername(username)
                 .map(User::getEmail)
                 .orElse("no-email@example.com");
+        Long id = optionalUser.map(User::getId).orElse(null);
 
         // Generar token usando el JwtService
         String token = jwtService.generateToken(username, roles);
 
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
 
-        Map<String, String> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         body.put("token", token);
+        body.put("id", id);
         body.put("username", username);
         body.put("email", email);
         body.put("message", "Sesión iniciada correctamente");

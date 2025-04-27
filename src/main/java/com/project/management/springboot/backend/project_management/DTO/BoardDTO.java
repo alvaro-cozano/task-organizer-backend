@@ -12,7 +12,9 @@ public class BoardDTO {
     @NotEmpty
     private String boardName;
 
-    private List<UserReferenceDTO> users; // Lista de usuarios asociados al tablero
+    private List<UserReferenceDTO> users;
+
+    private UserBoardReferenceDTO userBoardReference;
 
     public BoardDTO() {
         users = new ArrayList<>();
@@ -38,6 +40,14 @@ public class BoardDTO {
 
     public void setBoardName(String boardName) {
         this.boardName = boardName;
+    }
+
+    public UserBoardReferenceDTO getUserBoardReference() {
+        return userBoardReference;
+    }
+
+    public void setUserBoardReference(UserBoardReferenceDTO userBoardReference) {
+        this.userBoardReference = userBoardReference;
     }
 
     public List<UserReferenceDTO> getUsers() {

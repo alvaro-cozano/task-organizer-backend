@@ -42,14 +42,13 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-
     @PostMapping("/check-token")
     public ResponseEntity<?> renewToken(HttpServletRequest request) {
         String token = request.getHeader(TokenJwtConfig.HEADER_AUTHORIZATION);
         if (token == null || !token.startsWith(TokenJwtConfig.PREFIX_TOKEN)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Token no proporcionado o no válido");
-        } 
+        }
 
         token = token.replace(TokenJwtConfig.PREFIX_TOKEN, "");
 
@@ -92,11 +91,13 @@ public class AuthController {
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no encontrado");
             }
+
+            Long userId = user.getId();
             String email = user.getEmail();
 
             String newToken = jwtService.generateToken(username, authorities);
 
-            return ResponseEntity.ok(new TokenResponse(newToken, username, email));
+            return ResponseEntity.ok(new TokenResponse(userId, newToken, username, email));
 
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -114,7 +115,7 @@ public class AuthController {
             connection.setRequestMethod("GET");
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/json");
-    
+
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
             StringBuilder response = new StringBuilder();
@@ -122,37 +123,36 @@ public class AuthController {
                 response.append(inputLine);
             }
             in.close();
-    
+
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.toString());
             String email = jsonNode.get("email").asText();
             String firstName = jsonNode.has("given_name") ? jsonNode.get("given_name").asText() : "";
             String lastName = jsonNode.has("family_name") ? jsonNode.get("family_name").asText() : "";
-    
+
             return Map.of("email", email, "firstName", firstName, "lastName", lastName);
-    
+
         } catch (Exception e) {
             return null;
         }
     }
-    
 
     @PostMapping("/login/google")
     public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> body) {
         String accessToken = body.get("accessToken");
-        
+
         Map<String, String> userInfo = verifyGoogleAccessToken(accessToken);
 
         if (userInfo == null || userInfo.get("email") == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de Google no válido");
         }
-    
+
         String email = userInfo.get("email");
         String firstName = userInfo.get("firstName");
         String lastName = userInfo.get("lastName");
-        
+
         User user = userRepository.findByEmail(email).orElse(null);
-    
+
         if (user == null) {
             String username = email.split("@")[0];
             User newUser = new User();
@@ -161,15 +161,15 @@ public class AuthController {
             newUser.setPassword("google-authenticated");
             newUser.setFirst_name(firstName);
             newUser.setLast_name(lastName);
-        
+
             user = userService.save(newUser);
         }
-    
+
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-    
+
         String token = jwtService.createTokenForGoogleUser(user, authorities);
-        TokenResponse tokenResponse = new TokenResponse(token, user.getUsername(), user.getEmail());
+        TokenResponse tokenResponse = new TokenResponse(user.getId(), token, user.getUsername(), user.getEmail());
         return ResponseEntity.ok(tokenResponse);
-    }    
+    }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.management.springboot.backend.project_management.DTO.BoardDTO;
+import com.project.management.springboot.backend.project_management.DTO.UserBoardReferenceDTO;
 import com.project.management.springboot.backend.project_management.DTO.UserReferenceDTO;
+import com.project.management.springboot.backend.project_management.DTO.User_boardDTO;
 import com.project.management.springboot.backend.project_management.entities.connection.User_board;
 import com.project.management.springboot.backend.project_management.entities.models.Board;
 import com.project.management.springboot.backend.project_management.entities.models.Card;
@@ -24,6 +27,7 @@ import com.project.management.springboot.backend.project_management.repositories
 import com.project.management.springboot.backend.project_management.repositories.connection.User_boardRepository;
 import com.project.management.springboot.backend.project_management.repositories.connection.User_cardRepository;
 import com.project.management.springboot.backend.project_management.utils.mapper.BoardMapper;
+import com.project.management.springboot.backend.project_management.utils.mapper.User_BoardMapper;
 
 @Service
 public class BoardServiceImpl implements BoardService {
@@ -73,7 +77,6 @@ public class BoardServiceImpl implements BoardService {
 
         User currentUser = optionalCurrentUser.get();
 
-        // Validar si ya existe un tablero con ese nombre para este usuario
         List<User_board> userBoards = userBoardRepository.findByUserId(currentUser.getId());
         for (User_board ub : userBoards) {
             Optional<Board> board = repository.findById(ub.getBoard_id());
@@ -99,9 +102,27 @@ public class BoardServiceImpl implements BoardService {
 
         Board savedBoard = repository.save(board);
 
+        List<Object[]> maxPos = userBoardRepository.findMaxPosByUserId(currentUser.getId());
+
+        int nextPosX = 0;
+        int nextPosY = 0;
+
+        if (maxPos != null && !maxPos.isEmpty()) {
+            Object[] result = maxPos.get(0);
+            Integer maxPosX = (Integer) result[0];
+            Integer maxPosY = (Integer) result[1];
+
+            nextPosX = maxPosX != null ? maxPosX + 1 : 0;
+            nextPosY = maxPosY != null ? maxPosY + 1 : 0;
+        }
+
         for (User user : users) {
-            boolean isAdmin = user.getId().equals(currentUser.getId());
-            User_board userBoard = new User_board(user.getId(), savedBoard.getId(), isAdmin);
+            User_board userBoard = new User_board();
+            userBoard.setBoard_id(savedBoard.getId());
+            userBoard.setUser_id(user.getId());
+            userBoard.setAdmin(user.equals(currentUser));
+            userBoard.setPosX(nextPosX);
+            userBoard.setPosY(nextPosY);
             userBoardRepository.save(userBoard);
         }
 
@@ -216,11 +237,7 @@ public class BoardServiceImpl implements BoardService {
         String username = authentication.getName();
 
         Optional<User> optionalCurrentUser = userRepository.findByUsername(username);
-        if (optionalCurrentUser.isEmpty()) {
-            throw new RuntimeException("Usuario actual no encontrado");
-        }
-
-        User currentUser = optionalCurrentUser.get();
+        User currentUser = optionalCurrentUser.orElseThrow(() -> new RuntimeException("Usuario actual no encontrado"));
 
         List<User_board> userBoards = userBoardRepository.findByUserId(currentUser.getId());
 
@@ -229,11 +246,51 @@ public class BoardServiceImpl implements BoardService {
                 .collect(Collectors.toList());
 
         Iterable<Board> iterableBoards = repository.findAllById(boardIds);
-        List<Board> boards = new ArrayList<>();
-        iterableBoards.forEach(boards::add);
+        List<Board> boards = StreamSupport.stream(iterableBoards.spliterator(), false)
+                .collect(Collectors.toList());
+
+        boards.sort((board1, board2) -> {
+            User_board userBoard1 = userBoards.stream()
+                    .filter(ub -> ub.getBoard_id().equals(board1.getId()))
+                    .findFirst().orElse(null);
+
+            User_board userBoard2 = userBoards.stream()
+                    .filter(ub -> ub.getBoard_id().equals(board2.getId()))
+                    .findFirst().orElse(null);
+
+            if (userBoard1 != null && userBoard2 != null) {
+                int posXComparison = Integer.compare(userBoard1.getPosX(), userBoard2.getPosX());
+                if (posXComparison != 0) {
+                    return posXComparison;
+                }
+                return Integer.compare(userBoard1.getPosY(), userBoard2.getPosY());
+            }
+            return 0;
+        });
 
         return boards.stream()
-                .map(BoardMapper::toDTO)
+                .map(board -> {
+                    BoardDTO boardDTO = BoardMapper.toDTO(board);
+
+                    User_board userBoard = userBoards.stream()
+                            .filter(ub -> ub.getBoard_id().equals(board.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (userBoard != null) {
+                        User_boardDTO userBoardDTO = User_BoardMapper.toDTO(userBoard);
+
+                        int adjustedPosX = userBoardDTO.getPosX();
+                        int adjustedPosY = userBoardDTO.getPosY();
+
+                        UserBoardReferenceDTO userBoardReferenceDTO = new UserBoardReferenceDTO(adjustedPosX,
+                                adjustedPosY);
+                        boardDTO.setUserBoardReference(userBoardReferenceDTO);
+                    }
+
+                    return boardDTO;
+                })
                 .collect(Collectors.toList());
     }
+
 }

@@ -97,6 +97,14 @@ public class User_board {
         this.posY = posY;
     }
 
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
